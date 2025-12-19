@@ -152,7 +152,7 @@ def call_openrouter(
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://github.com/justinjohnson/continuum",
+        "HTTP-Referer": "https://github.com/BioInfo/continuum",
         "X-Title": "Continuum Voice Analysis",
     }
 
