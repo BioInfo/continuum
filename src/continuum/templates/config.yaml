@@ -1,0 +1,12 @@
+# Continuum Configuration
+version: 1
+
+# Days before a file is considered stale (shows warning in status)
+stale_days: 14
+
+# Memory filtering for exports
+memory_recent_days: 30    # Include memories from last N days
+memory_max_entries: 20    # Maximum memory entries in export
+
+# Identity condensing for exports
+identity_max_words: 500   # Approximate word limit for identity section
