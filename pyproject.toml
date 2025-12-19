@@ -1,0 +1,57 @@
+[project]
+name = "continuum"
+version = "0.1.0"
+description = "Portable context for Claude - own your memory, voice, and identity"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [
+    {name = "Justin Johnson"}
+]
+keywords = ["claude", "ai", "context", "memory", "llm"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "click>=8.0",
+    "rich>=13.0",
+    "pyyaml>=6.0",
+    "httpx>=0.27",
+    "python-dotenv>=1.0",
+    "mcp>=1.0",
+    "uvicorn>=0.30",
+    "starlette>=0.38",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+]
+
+[project.scripts]
+continuum = "continuum.cli:cli"
+ct = "continuum.cli:cli"
+continuum-mcp = "continuum.mcp_server:run_stdio"
+continuum-mcp-sse = "continuum.mcp_server:run_sse"
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+continuum = ["templates/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
