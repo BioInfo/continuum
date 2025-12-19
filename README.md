@@ -31,7 +31,7 @@ pip install continuum-context
 uv pip install continuum-context
 
 # From source
-git clone https://github.com/justinjohnson/continuum.git
+git clone https://github.com/BioInfo/continuum.git
 cd continuum
 pip install -e .
 ```
