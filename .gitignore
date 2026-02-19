@@ -48,3 +48,7 @@ htmlcov/
 
 # Continuum local context
 .continuum/
+
+# Internal docs (contain personal examples)
+docs/
+CLAUDE.md
