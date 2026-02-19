@@ -47,12 +47,22 @@ class Config:
     project_path: Path | None = None  # .continuum/ in project root, if exists
 
     @classmethod
-    def load(cls, base_path: Path | None = None, detect_project: bool = True) -> "Config":
+    def load(
+        cls,
+        base_path: Path | None = None,
+        detect_project: bool = True,
+        start_path: Path | None = None,
+    ) -> "Config":
         """
         Load configuration from config.yaml if it exists.
 
         If detect_project is True, also looks for .continuum/ in project root.
         Project config values override global config values.
+
+        Args:
+            base_path: Base path for global config (default: ~/.continuum)
+            detect_project: Whether to detect project-level .continuum/
+            start_path: Starting path for project root detection (default: cwd)
         """
         if base_path is None:
             base_path = Path.home() / ".continuum"
@@ -72,7 +82,7 @@ class Config:
         # Detect project path
         project_path = None
         if detect_project:
-            project_root = find_project_root()
+            project_root = find_project_root(start_path)
             if project_root:
                 candidate = project_root / ".continuum"
                 if candidate.exists() and candidate.is_dir():

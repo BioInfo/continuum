@@ -1,6 +1,6 @@
 [project]
 name = "continuum"
-version = "0.1.0"
+version = "0.2.0"
 description = "Portable context for Claude - own your memory, voice, and identity"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -17,8 +17,17 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
+[project.urls]
+Homepage = "https://github.com/BioInfo/continuum"
+Repository = "https://github.com/BioInfo/continuum"
+Issues = "https://github.com/BioInfo/continuum/issues"
+Changelog = "https://github.com/BioInfo/continuum/releases"
+
 dependencies = [
     "click>=8.0",
     "rich>=13.0",
@@ -34,6 +43,7 @@ dependencies = [
 dev = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
+    "pytest-asyncio>=0.23",
 ]
 
 [project.scripts]
@@ -41,6 +51,7 @@ continuum = "continuum.cli:cli"
 ct = "continuum.cli:cli"
 continuum-mcp = "continuum.mcp_server:run_stdio"
 continuum-mcp-sse = "continuum.mcp_server:run_sse"
+continuum-mcp-http = "continuum.mcp_server:run_http"
 
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
@@ -50,7 +61,7 @@ build-backend = "setuptools.build_meta"
 where = ["src"]
 
 [tool.setuptools.package-data]
-continuum = ["templates/*"]
+continuum = ["templates/*", "py.typed"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

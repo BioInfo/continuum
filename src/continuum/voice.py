@@ -217,7 +217,7 @@ def parse_analysis(response: str) -> dict | None:
             fixed = fix_broken_json_strings(json_str)
             try:
                 return json.loads(fixed)
-            except:
+            except Exception:
                 return None
 
     # Try to find JSON between ```json and ```

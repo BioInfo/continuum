@@ -610,11 +610,33 @@ def serve_stdio():
     run_stdio()
 
 
+@serve.command("http")
+@click.option("--host", default="0.0.0.0", help="Host to bind to (default: 0.0.0.0 for Tailscale)")
+@click.option("--port", default=8765, help="Port to listen on (default: 8765)")
+def serve_http(host: str, port: int):
+    """Run MCP server with Streamable HTTP transport (recommended for remote access).
+
+    This starts an HTTP server that Claude can connect to remotely.
+    Use with Tailscale for secure access from any device.
+
+    Example:
+        continuum serve http
+        continuum serve http --port 9000
+    """
+    from .mcp_server import run_http
+
+    console.print(f"[bold]Starting Continuum MCP server (Streamable HTTP)...[/bold]")
+    console.print(f"  Host: {host}")
+    console.print(f"  Port: {port}")
+    console.print()
+    run_http(host=host, port=port)
+
+
 @serve.command("sse")
 @click.option("--host", default="0.0.0.0", help="Host to bind to (default: 0.0.0.0 for Tailscale)")
 @click.option("--port", default=8765, help="Port to listen on (default: 8765)")
 def serve_sse(host: str, port: int):
-    """Run MCP server with SSE transport (for remote access via Tailscale).
+    """Run MCP server with SSE transport (legacy, use 'serve http' instead).
 
     This starts an HTTP server that Claude can connect to remotely.
     Use with Tailscale for secure access from any device.
@@ -626,6 +648,7 @@ def serve_sse(host: str, port: int):
     from .mcp_server import run_sse
 
     console.print(f"[bold]Starting Continuum MCP server (SSE)...[/bold]")
+    console.print(f"  [yellow]Note: SSE is legacy. Consider 'continuum serve http' instead.[/yellow]")
     console.print(f"  Host: {host}")
     console.print(f"  Port: {port}")
     console.print()
@@ -633,17 +656,20 @@ def serve_sse(host: str, port: int):
 
 
 @serve.command("config")
-@click.option("--sse", is_flag=True, help="Show SSE config (for remote access)")
-@click.option("--port", default=8765, help="Port for SSE server")
-def serve_config(sse: bool, port: int):
+@click.option("--sse", is_flag=True, help="Show legacy SSE config instead of Streamable HTTP")
+@click.option("--http", "use_http", is_flag=True, help="Show Streamable HTTP config (default for remote)")
+@click.option("--port", default=8765, help="Port for remote server")
+def serve_config(sse: bool, use_http: bool, port: int):
     """Show MCP configuration for Claude Code or Claude Desktop.
 
-    Prints the JSON config to add to your MCP settings.
+    Without flags: shows stdio config (local).
+    With --http: shows Streamable HTTP config (recommended for remote).
+    With --sse: shows legacy SSE config (for older clients).
     """
     import json
     import subprocess
 
-    if sse:
+    if sse or use_http:
         # Get Tailscale hostname
         try:
             result = subprocess.run(
@@ -652,21 +678,29 @@ def serve_config(sse: bool, port: int):
                 text=True,
                 check=True,
             )
-            import json as json_mod
-            ts_status = json_mod.loads(result.stdout)
+            ts_status = json.loads(result.stdout)
             hostname = ts_status.get("Self", {}).get("DNSName", "").rstrip(".")
             if not hostname:
                 hostname = "<your-tailscale-hostname>"
         except Exception:
             hostname = "<your-tailscale-hostname>"
 
-        config = {
-            "continuum": {
-                "transport": "sse",
-                "url": f"https://{hostname}/mcp/sse",
+        if sse:
+            config = {
+                "continuum": {
+                    "transport": "sse",
+                    "url": f"https://{hostname}/mcp/sse",
+                }
             }
-        }
-        console.print("[bold]SSE MCP Config (for remote Claude):[/bold]")
+            console.print("[bold]SSE MCP Config (legacy, for remote Claude):[/bold]")
+        else:
+            config = {
+                "continuum": {
+                    "transport": "http",
+                    "url": f"https://{hostname}/mcp",
+                }
+            }
+            console.print("[bold]Streamable HTTP MCP Config (for remote Claude):[/bold]")
     else:
         # Find the continuum-mcp executable
         import shutil

@@ -1,5 +1,7 @@
 # Continuum
 
+[![PyPI version](https://img.shields.io/pypi/v/continuum-context.svg)](https://pypi.org/project/continuum-context/)
+[![Downloads](https://img.shields.io/pypi/dm/continuum-context.svg)](https://pypi.org/project/continuum-context/)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![MCP Compatible](https://img.shields.io/badge/MCP-Compatible-green.svg)](https://modelcontextprotocol.io/)
@@ -7,6 +9,13 @@
 **Portable context for Claude. Own your memory, voice, and identity across all Claude interfaces.**
 
 Continuum gives you a single source of truth for your context that works with Claude Code, Claude.ai, Claude Desktop, and the API. Your identity, voice, working context, and memories live in simple markdown files that you control.
+
+## What's New in v0.2
+
+- **Streamable HTTP transport** for MCP (recommended over SSE for remote access)
+- **Expanded test suite** covering export, config, MCP, and voice modules
+- **Bug fixes**: removed debug mode from production server, fixed bare except clauses, eliminated `os.chdir()` side effects
+- **py.typed marker** for PEP 561 type checking support
 
 ## Why Continuum?
 
@@ -24,16 +33,21 @@ Continuum solves this by giving you:
 ## Installation
 
 ```bash
-# With pip
 pip install continuum-context
+```
 
+> **Note:** The package name on PyPI is `continuum-context`, not `continuum`.
+
+Other installation methods:
+
+```bash
 # With uv
 uv pip install continuum-context
 
 # From source
 git clone https://github.com/BioInfo/continuum.git
 cd continuum
-pip install -e .
+pip install -e ".[dev]"
 ```
 
 ## Quick Start
@@ -73,10 +87,10 @@ continuum export                  # Generate merged context file
 ```bash
 # Add memories (category auto-detected)
 continuum remember "Decided to use FastAPI for the microservice"
-# → [2024-12-19] DECISION - Decided to use FastAPI for the microservice
+# -> [YYYY-MM-DD] DECISION - Decided to use FastAPI for the microservice
 
 continuum remember "Team standup moved to 10am" --category fact
-# → [2024-12-19] FACT - Team standup moved to 10am
+# -> [YYYY-MM-DD] FACT - Team standup moved to 10am
 ```
 
 ### Project-Specific Context
@@ -107,15 +121,14 @@ Analyze your writing samples to generate a voice profile:
 mkdir -p ~/.continuum/samples/emails
 # Copy your writing examples there
 
-# Set your OpenRouter API key
-echo "OPENROUTER_API_KEY=sk-or-v1-..." > ~/.continuum/.env
-
 # Analyze and generate voice.md
 continuum voice analyze
 
 # Preview without updating
 continuum voice analyze --dry-run
 ```
+
+Requires an `OPENROUTER_API_KEY` environment variable (add to `~/.continuum/.env`).
 
 ### MCP Server
 
@@ -124,24 +137,31 @@ Continuum includes an MCP server that exposes your context to Claude.ai, Claude 
 **For Claude Code (local, stdio):**
 
 ```bash
-# Get config to add to ~/.claude/.mcp.json
+# Get config to add to your MCP settings
 continuum serve config
 ```
 
-**For Claude.ai / Claude Desktop (remote, SSE via Tailscale):**
+**For Claude.ai / Claude Desktop (remote, Streamable HTTP via Tailscale):**
 
 ```bash
 # Start the server (runs on port 8765)
-continuum serve sse
+continuum serve http
 
 # Enable Tailscale Funnel for HTTPS
 tailscale funnel --bg 8765
 
 # Get config
+continuum serve config --http
+```
+
+**Legacy SSE transport** is still available for older clients:
+
+```bash
+continuum serve sse
 continuum serve config --sse
 ```
 
-Add to Claude.ai: Settings → Connectors → Add custom connector
+Add to Claude.ai: Settings > Connectors > Add custom connector
 
 **MCP Tools:**
 
@@ -192,7 +212,7 @@ identity_max_words: 500
 
 1. **You own your context.** Not platforms, not providers. You.
 2. **Files are the interface.** Human-readable, git-friendly, editable with any tool.
-3. **Voice matters.** It's not just what you know—it's how you communicate.
+3. **Voice matters.** It's not just what you know, it's how you communicate.
 4. **Active curation beats passive extraction.** You decide what's important.
 
 ## Roadmap
@@ -200,10 +220,23 @@ identity_max_words: 500
 - [x] Core CLI (init, edit, status, remember, export, validate)
 - [x] Voice analysis from writing samples
 - [x] Project-specific context overlays
-- [x] MCP server for Claude.ai / Claude Desktop integration
+- [x] MCP server (stdio + SSE + Streamable HTTP)
 - [ ] Semantic memory search
 - [ ] Voice drift detection
 - [ ] Claude Code native integration
+
+## Contributing
+
+Contributions are welcome. To get started:
+
+```bash
+git clone https://github.com/BioInfo/continuum.git
+cd continuum
+pip install -e ".[dev]"
+pytest tests/ -v
+```
+
+Please open an issue first for significant changes.
 
 ## License
 

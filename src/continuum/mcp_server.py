@@ -18,11 +18,9 @@ server = Server("continuum")
 
 def get_config() -> Config:
     """Load config, optionally detecting project context."""
-    # Check for project path override via environment
     project_path = os.environ.get("CONTINUUM_PROJECT_PATH")
-    if project_path:
-        os.chdir(project_path)
-    return Config.load()
+    start_path = Path(project_path) if project_path else None
+    return Config.load(start_path=start_path)
 
 
 @server.list_tools()
@@ -319,7 +317,7 @@ def run_sse(host: str = "0.0.0.0", port: int = 8765):
         return JSONResponse({"status": "ok", "server": "continuum-mcp"})
 
     app = Starlette(
-        debug=True,  # Enable debug for better error messages
+        debug=False,
         routes=[
             # Health check
             Route("/health", endpoint=health_check),
@@ -336,6 +334,39 @@ def run_sse(host: str = "0.0.0.0", port: int = 8765):
     print(f"SSE endpoints:")
     print(f"  http://{host}:{port}/sse")
     print(f"  http://{host}:{port}/mcp/sse")
+    print(f"Health check: http://{host}:{port}/health")
+    uvicorn.run(app, host=host, port=port, log_level="info")
+
+
+def run_http(host: str = "0.0.0.0", port: int = 8765):
+    """
+    Run the MCP server with Streamable HTTP transport (recommended for remote access).
+
+    Args:
+        host: Host to bind to. Use 0.0.0.0 for Tailscale access.
+        port: Port to listen on.
+    """
+    from mcp.server.streamable_http_manager import StreamableHTTPSessionManager
+    from starlette.applications import Starlette
+    from starlette.routing import Mount, Route
+    from starlette.responses import JSONResponse
+    import uvicorn
+
+    session_manager = StreamableHTTPSessionManager(app=server, stateless=True)
+
+    async def health_check(request):
+        return JSONResponse({"status": "ok", "server": "continuum-mcp", "transport": "streamable-http"})
+
+    app = Starlette(
+        debug=False,
+        routes=[
+            Route("/health", endpoint=health_check),
+            Mount("/mcp", app=session_manager.handle_request),
+        ],
+    )
+
+    print(f"Starting Continuum MCP server (Streamable HTTP) on http://{host}:{port}")
+    print(f"MCP endpoint: http://{host}:{port}/mcp")
     print(f"Health check: http://{host}:{port}/health")
     uvicorn.run(app, host=host, port=port, log_level="info")
 
